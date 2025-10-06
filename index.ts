@@ -1,5 +1,8 @@
 import { registerRootComponent } from 'expo';
 
+// Compatibility shims (polyfills) for older libraries
+import './src/shims/dimensionsShim';
+
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
