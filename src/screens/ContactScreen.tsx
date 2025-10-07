@@ -16,7 +16,6 @@ import CountryPicker, {
   Country,
   CountryCode,
 } from "react-native-country-picker-modal";
-import SafeCountryPicker from "../components/SafeCountryPicker";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStack } from "../../App";
@@ -63,14 +62,20 @@ export default function ContactScreen() {
           </View>
           <View className="mt-5 w-full">
             <View className="border-b-2 border-b-green-600 justify-center items-center flex-row h-14 mb-3">
-              <SafeCountryPicker
-                cca2={countryCode}
-                filterable
-                showCallingCode
-                showCountryNameWithFlag
-                onChange={(c: any) => {
+              <CountryPicker
+                countryCode={countryCode}
+                withFilter
+                withFlag
+                withCountryNameButton
+                withCallingCode
+                visible={show}
+                onClose={() => {
+                  setShow(false);
+                }}
+                onSelect={(c) => {
                   setCountryCode(c.cca2);
-                  setCountry(c as any);
+                  setCountry(c);
+                  setShow(false);
                 }}
               />
 

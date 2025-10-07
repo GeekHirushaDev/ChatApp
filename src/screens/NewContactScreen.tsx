@@ -10,7 +10,6 @@ import CountryPicker, {
   Country,
   CountryCode,
 } from "react-native-country-picker-modal";
-import SafeCountryPicker from "../components/SafeCountryPicker";
 import {
   validateCountryCode,
   validateFirstName,
@@ -102,14 +101,20 @@ export default function NewContactScreen() {
           </View>
         </View>
         <View className="border-b-2 border-b-sky-800 justify-center items-center flex-row h-14 mt-8">
-          <SafeCountryPicker
-            cca2={countryCode}
-            filterable
-            showCallingCode
-            showCountryNameWithFlag
-            onChange={(c: any) => {
+          <CountryPicker
+            countryCode={countryCode}
+            withFilter
+            withFlag
+            withCountryNameButton
+            withCallingCode
+            visible={show}
+            onClose={() => {
+              setShow(false);
+            }}
+            onSelect={(c) => {
               setCountryCode(c.cca2);
-              setCountry(c as any);
+              setCountry(c);
+              setShow(false);
             }}
           />
           <AntDesign
