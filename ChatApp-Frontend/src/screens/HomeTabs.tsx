@@ -3,10 +3,13 @@ import ChatsScreen from "./ChatsScreen";
 import StatusScreen from "./StatusScreen";
 import CallsScreen from "./CallsScreen";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../theme/ThemeProvider";
 
 const Tabs = createBottomTabNavigator();
 
 export default function HomeTabs() {
+  const { applied } = useTheme();
+
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({
@@ -19,10 +22,12 @@ export default function HomeTabs() {
         },
         tabBarLabelStyle:{fontSize:16,fontWeight:'800'},
         tabBarActiveTintColor:"#16a34a",
-        tabBarInactiveTintColor:"#9ca3af",
+        tabBarInactiveTintColor: applied === "dark" ? "#9ca3af" : "#6b7280",
         tabBarStyle:{
           height:80,
-          backgroundColor:"#fff",
+          backgroundColor: applied === "dark" ? "#1f2937" : "#ffffff",
+          borderTopColor: applied === "dark" ? "#374151" : "#e5e7eb",
+          borderTopWidth: 1,
           paddingTop:8
         }
       })}

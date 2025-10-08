@@ -23,6 +23,7 @@ import { Chat } from "../socket/chat";
 import { formatChatTime } from "../util/DateFormatter";
 import { useSendChat } from "../socket/UseSendChat";
 import { useTheme } from "../theme/ThemeProvider";
+import { getProfileImageUrl, getFallbackAvatarUrl, getBestProfileImageUrl } from "../util/ImageUtils";
 
 type SingleChatScreenProps = NativeStackScreenProps<
   RootStack,
@@ -43,6 +44,9 @@ export default function SingleChatScreen({
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "",
+      headerStyle: {
+        backgroundColor: applied === "dark" ? "black" : "white",
+      },
       headerLeft: () => (
         <View className="flex-row items-center gap-2">
           <TouchableOpacity
@@ -55,8 +59,18 @@ export default function SingleChatScreen({
           </TouchableOpacity>
           <TouchableOpacity className="h-14 w-14 rounded-full border-1 border-gray-300 justify-center items-center">
             <Image
-              source={{ uri: profileImage }}
+              source={{ 
+                uri: getBestProfileImageUrl(profileImage, friendName)
+              }}
               className="h-14 w-14 rounded-full"
+              onError={() => {
+                console.log("=== SINGLE CHAT IMAGE ERROR ===");
+                console.log("Failed to load profile image in chat:", profileImage);
+                console.log("Friend name:", friendName);
+                console.log("Constructed URL:", getProfileImageUrl(profileImage));
+                console.log("Best URL used:", getBestProfileImageUrl(profileImage, friendName));
+                console.log("=== END SINGLE CHAT IMAGE ERROR ===");
+              }}
             />
           </TouchableOpacity>
           <View className="space-y-2 ">
@@ -77,7 +91,7 @@ export default function SingleChatScreen({
         </TouchableOpacity>
       ),
     });
-  }, [navigation, friend]);
+  }, [navigation, friend, applied]);
 
   const renderItem = ({ item }: { item: Chat }) => {
     const isMe = item.from.id !== chatId;

@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { RootStack } from "../../App";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useContext, useLayoutEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,6 +21,9 @@ import { formatChatTime } from "../util/DateFormatter";
 import { Chat } from "../socket/chat";
 import { AuthContext } from "../components/AuthProvider";
 import { useTheme } from "../theme/ThemeProvider";
+import { useWebSocket } from "../socket/WebSocketProvider";
+import { getProfileImageUrl, getFallbackAvatarUrl, getBestProfileImageUrl } from "../util/ImageUtils";
+import React from "react";
 
 type HomeScreenProps = NativeStackNavigationProp<RootStack, "HomeScreen">;
 
@@ -31,6 +34,17 @@ export default function HomeScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const auth = useContext(AuthContext);
   const { applied } = useTheme();
+  const { sendMessage, isConnected } = useWebSocket();
+
+  // Refresh chat list when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isConnected) {
+        console.log("Home screen focused, requesting updated chat list");
+        sendMessage({ type: "get_chat_list" });
+      }
+    }, [isConnected, sendMessage])
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -39,6 +53,10 @@ export default function HomeScreen() {
           className={`h-20 justify-center items-center flex-row shadow-2xl elevation-2xl ${
             applied === "dark" ? "bg-black" : "bg-white"
           } ${Platform.OS === "ios" ? `py-5` : `py-0`}`}
+          style={{
+            borderBottomWidth: 1,
+            borderBottomColor: applied === "dark" ? "#374151" : "#e5e7eb",
+          }}
         >
           <View className="flex-1 items-start ms-3">
             <Text className={`font-bold text-2xl ${applied === "dark" ? "text-white" : "text-black"}`}>ChatApp</Text>
@@ -84,7 +102,7 @@ export default function HomeScreen() {
                         }}
                       >
                         <TouchableOpacity
-                          className="h-12 my-2 justify-center items-start border-b-2 border-b-gray-100"
+                          className={`h-12 my-2 justify-center items-start border-b-2 ${applied === "dark" ? "border-b-gray-600" : "border-b-gray-100"}`}
                           onPress={() => {
                             navigation.navigate("SettingScreen");
                             setModalVisible(false);
@@ -93,7 +111,7 @@ export default function HomeScreen() {
                           <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>Settings</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          className="h-12 my-2 justify-center items-start border-b-2 border-b-gray-100"
+                          className={`h-12 my-2 justify-center items-start border-b-2 ${applied === "dark" ? "border-b-gray-600" : "border-b-gray-100"}`}
                           onPress={() => {
                             navigation.navigate("ProfileScreen");
                             setModalVisible(false);
@@ -102,7 +120,7 @@ export default function HomeScreen() {
                           <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>My Profile</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          className="h-12 my-2 justify-center items-start border-b-2 border-b-gray-100"
+                          className={`h-12 my-2 justify-center items-start border-b-2 ${applied === "dark" ? "border-b-gray-600" : "border-b-gray-100"}`}
                           onPress={() => {
                             if (auth) auth.signOut();
                           }}
@@ -119,7 +137,7 @@ export default function HomeScreen() {
         </View>
       ),
     });
-  }, [navigation, isModalVisible]);
+  }, [navigation, isModalVisible, applied]);
 
   const filterdChats = [...chatList]
     .filter((chat) => {
@@ -140,42 +158,43 @@ export default function HomeScreen() {
         applied === "dark" ? "bg-gray-800" : "bg-gray-50"
       }`}
       onPress={() => {
+        // Debug chat item
+        console.log("=== CHAT ITEM DEBUG ===");
+        console.log("Friend ID:", item.friendId);
+        console.log("Friend Name:", item.friendName);
+        console.log("Profile Image Path:", item.profileImage);
+        console.log("Constructed URL:", getProfileImageUrl(item.profileImage));
+        console.log("=== END CHAT ITEM DEBUG ===");
+        
         navigation.navigate("SingleChatScreen", {
           chatId: item.friendId,
           friendName: item.friendName,
           lastSeenTime: formatChatTime(item.lastTimeStamp),
-          profileImage: item.profileImage
-            ? item.profileImage
-            : `https://ui-avatars.com/api/?name=${item.friendName.replace(
-                " ",
-                "+"
-              )}&background=random`,
+          profileImage: getBestProfileImageUrl(item.profileImage, item.friendName)
         });
       }}
     >
       <TouchableOpacity className="h-14 w-14 rounded-full border-1 border-gray-300 justify-center items-center">
-        {item.profileImage ? (
-          <Image
-            source={{ uri: item.profileImage }}
-            className="h-14 w-14 rounded-full"
-          />
-        ) : (
-          <Image
-            source={{
-              uri: `https://ui-avatars.com/api/?name=${item.friendName.replace(
-                " ",
-                "+"
-              )}&background=random`,
-            }}
-            className="h-14 w-14 rounded-full"
-          />
-        )}
+        <Image
+          source={{ 
+            uri: getBestProfileImageUrl(item.profileImage, item.friendName)
+          }}
+          className="h-14 w-14 rounded-full"
+          onError={() => {
+            console.log("=== IMAGE LOAD ERROR ===");
+            console.log("Failed to load profile image for:", item.friendName);
+            console.log("Backend path:", item.profileImage);
+            console.log("Constructed URL:", getProfileImageUrl(item.profileImage));
+            console.log("Best URL used:", getBestProfileImageUrl(item.profileImage, item.friendName));
+            console.log("=== END IMAGE LOAD ERROR ===");
+          }}
+        />
       </TouchableOpacity>
       <View className="flex-1 ms-3">
         <View className="flex-row justify-between">
           <Text
             className={`font-bold text-xl ${
-              applied === "dark" ? "text-gray-200" : "text-gray-600"
+              applied === "dark" ? "text-white" : "text-gray-800"
             }`}
             numberOfLines={1}
             ellipsizeMode="tail"

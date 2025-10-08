@@ -11,6 +11,8 @@ import { useUserProfile } from "../socket/UseUserProfile";
 import { uploadProfileImage } from "../api/UserService";
 import { AuthContext } from "../components/AuthProvider";
 import { useWebSocket } from "../socket/WebSocketProvider";
+import { getProfileImageUrl, getFallbackAvatarUrl, getBestProfileImageUrl, testProfileImageUrl } from "../util/ImageUtils";
+import { debugImageUrl, findWorkingImageUrl } from "../util/ImageTestUtils";
 
 type ProfileScreenProp = NativeStackNavigationProp<RootStack, "ProfileScreen">;
 export default function ProfileScreen() {
@@ -32,18 +34,45 @@ export default function ProfileScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [localProfileImage, setLocalProfileImage] = useState<string | null>(null);
   const auth = useContext(AuthContext);
 
   // Refresh profile when component mounts or when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      console.log("Profile loaded:", userProfile);
-      setIsLoading(false);
-      // Only clear local image if we have a server profile image and we're not currently uploading
-      // This prevents clearing the local image during upload
-      if (userProfile.profileImage && userProfile.profileImage.trim() !== '' && !isUploading) {
-        setImage(null);
+      console.log("=== PROFILE SCREEN DEBUG ===");
+      console.log("Full userProfile object:", JSON.stringify(userProfile, null, 2));
+      console.log("Profile image path from backend:", userProfile.profileImage);
+      console.log("User ID:", userProfile.id);
+      console.log("First Name:", userProfile.firstName);
+      console.log("Last Name:", userProfile.lastName);
+      
+      // Test URL construction for this user
+      if (userProfile.id) {
+        testProfileImageUrl(userProfile.id);
       }
+      
+      setIsLoading(false);
+      
+      // Update profile image if available from server and we're not currently uploading
+      const profileImageUrl = getProfileImageUrl(userProfile.profileImage);
+      console.log("Constructed profile image URL:", profileImageUrl);
+      
+      if (profileImageUrl && !isUploading) {
+        console.log("Setting profile image URL:", profileImageUrl);
+        setLocalProfileImage(profileImageUrl);
+        
+        // Also test the URL accessibility for debugging
+        if (userProfile.profileImage) {
+          debugImageUrl(userProfile.profileImage, "Profile Screen");
+        }
+      } else {
+        console.log("No valid profile image URL or currently uploading");
+        console.log("profileImageUrl:", profileImageUrl);
+        console.log("isUploading:", isUploading);
+      }
+      
+      console.log("=== END PROFILE SCREEN DEBUG ===");
     }
   }, [userProfile, isUploading]);
 
@@ -60,7 +89,15 @@ export default function ProfileScreen() {
     React.useCallback(() => {
       if (isConnected && auth?.userId) {
         console.log("Profile screen focused, requesting profile data");
+        setImage(null); // Clear temporary image state when screen gains focus
+        setLocalProfileImage(null); // Clear cached image to force refresh
         sendMessage({ type: "set_user_profile" });
+        
+        // Also request fresh data after a short delay to ensure backend has processed any recent uploads
+        setTimeout(() => {
+          console.log("Requesting fresh profile data after delay");
+          sendMessage({ type: "set_user_profile" });
+        }, 500);
       }
     }, [isConnected, auth?.userId, sendMessage])
   );
@@ -75,6 +112,7 @@ export default function ProfileScreen() {
     if (!result.canceled) {
       const selectedImageUri = result.assets[0].uri;
       setImage(selectedImageUri);
+      setLocalProfileImage(selectedImageUri); // Set local profile image immediately
       setIsUploading(true);
       
       try {
@@ -84,6 +122,16 @@ export default function ProfileScreen() {
         
         if (uploadResult && uploadResult.status) {
           console.log("Profile image uploaded successfully");
+          // Update local profile image with server URL if available
+          if (uploadResult.profileImageUrl) {
+            console.log("Server returned profile image URL:", uploadResult.profileImageUrl);
+            setLocalProfileImage(uploadResult.profileImageUrl);
+          } else if (uploadResult.imagePath) {
+            console.log("Server returned image path:", uploadResult.imagePath);
+            const fullUrl = getProfileImageUrl(uploadResult.imagePath);
+            console.log("Constructed full URL:", fullUrl);
+            setLocalProfileImage(fullUrl);
+          }
           // Refresh user profile and friend lists after successful upload
           setTimeout(() => {
             sendMessage({ type: "set_user_profile" });
@@ -91,7 +139,8 @@ export default function ProfileScreen() {
             sendMessage({ type: "get_chat_list" });
             sendMessage({ type: "get_all_users" });
             setIsUploading(false);
-          }, 2000); // Wait 2 seconds for the upload to complete
+            setImage(null); // Clear temporary image
+          }, 1000); // Reduced wait time
         } else {
           console.error("Profile image upload failed:", uploadResult?.message);
           setIsUploading(false);
@@ -123,20 +172,45 @@ export default function ProfileScreen() {
       <View className="flex-1 mt-10 w-full p-5">
         <View className="items-center ">
           {image ? (
+            // Show temporary local image during upload
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: image }}
+              onError={(error) => {
+                console.log("Failed to load temporary image:", image);
+                console.log("Error:", error.nativeEvent.error);
+              }}
             />
-          ) : userProfile?.profileImage ? (
+          ) : localProfileImage ? (
+            // Show cached profile image
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
-              source={{ uri: userProfile.profileImage }}
+              source={{ uri: localProfileImage }}
+              onError={(error) => {
+                console.log("Failed to load local profile image:", localProfileImage);
+                console.log("Error:", error.nativeEvent.error);
+                // Clear the failed local image and fall back
+                setLocalProfileImage(null);
+              }}
+            />
+          ) : userProfile?.profileImage ? (
+            // Show profile image directly from userProfile
+            <Image
+              className="w-40 h-40 rounded-full border-gray-300 border-2"
+              source={{ uri: getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName) }}
+              onError={(error) => {
+                console.log("Failed to load user profile image directly");
+                console.log("Original path:", userProfile.profileImage);
+                console.log("Constructed URL:", getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName));
+                console.log("Error:", error.nativeEvent.error);
+              }}
             />
           ) : (
+            // Show fallback avatar
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{
-                uri: `https://ui-avatars.com/api/?name=${userProfile?.firstName || 'User'}+${userProfile?.lastName || 'Name'}&background=random`,
+                uri: getFallbackAvatarUrl(userProfile?.firstName, userProfile?.lastName),
               }}
             />
           )}

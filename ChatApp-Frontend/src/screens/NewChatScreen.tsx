@@ -27,6 +27,9 @@ export default function NewChatScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "",
+      headerStyle: {
+        backgroundColor: applied === "dark" ? "black" : "white",
+      },
       headerLeft: () => (
         <View className="items-center flex-row gap-x-2">
           <TouchableOpacity
@@ -45,7 +48,7 @@ export default function NewChatScreen() {
       ),
       headerRight: () => <View></View>,
     });
-  }, [navigation, users]);
+  }, [navigation, users, applied]);
 
   const renderItem = ({ item }: { item: User }) => (
     <TouchableOpacity
