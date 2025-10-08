@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+// @ts-ignore: allow side-effect import of CSS in this cross-platform project
 import "../../global.css";
 import {
   ALERT_TYPE,
