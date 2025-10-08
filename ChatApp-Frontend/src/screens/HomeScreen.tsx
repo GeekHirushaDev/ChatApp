@@ -81,7 +81,7 @@ export default function HomeScreen() {
                   }}
                 >
                   <Pressable
-                    className="bg-red-100"
+                    // className="bg-green-100"
                     onPress={(e) => {
                       e.stopPropagation(); // prevent modal close inside of the modal
                     }}
