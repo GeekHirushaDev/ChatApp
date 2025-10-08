@@ -7,7 +7,7 @@ const BACKEND_PATH = '/ChatApp-Backend';
  * Constructs the full URL for a profile image from the backend
  * @param imagePath - The image path returned from the backend (e.g., "profile-images/1/profile1.png")
  * @returns Full URL to the image or null if path is invalid
- * Expected URL format: https://566917d7c764.ngrok-free.app/ChatApp-Backend/profile-images/1/profile1.png
+ * Expected URL format: https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/1/profile1.png
  */
 export const getProfileImageUrl = (imagePath: string | null | undefined): string | null => {
   console.log("=== getProfileImageUrl Debug ===");
@@ -29,15 +29,22 @@ export const getProfileImageUrl = (imagePath: string | null | undefined): string
   let cleanPath = imagePath.trim();
   
   // The images are stored directly in ChatApp-Backend/profile-images/ folder
-  // Correct URL format: https://domain.com/ChatApp-Backend/profile-images/userId/profileX.png
+  // Correct URL format: https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/userId/profileX.png
   
-  // If the path doesn't start with /, add it
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = `/${cleanPath}`;
+  // Remove leading slash if present to avoid double slashes
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
   }
   
-  // Construct the correct URL WITHOUT /web prefix
-  const fullUrl = `${API_BASE_URL}${BACKEND_PATH}${cleanPath}`;
+  // Ensure the path starts with profile-images/
+  if (!cleanPath.startsWith('profile-images/')) {
+    // If the backend returns just a filename or different format, construct the proper path
+    console.log("Path doesn't start with profile-images/, attempting to construct it");
+    // This might happen if backend returns something like "1/profile1.png" or just "profile1.png"
+  }
+  
+  // Construct the correct URL - adding slash between BACKEND_PATH and cleanPath
+  const fullUrl = `${API_BASE_URL}${BACKEND_PATH}/${cleanPath}`;
   
   console.log("Constructed full URL (direct path):", fullUrl);
   console.log("=== End getProfileImageUrl Debug ===");
@@ -88,14 +95,32 @@ export const getBestProfileImageUrl = (
 };
 
 /**
- * Test function to verify URL construction
+ * Test function to verify URL construction and accessibility
  * @param userId - User ID to test
  * @returns Constructed URL for testing
  */
 export const testProfileImageUrl = (userId: number): string => {
-  const testPath = `profile-images/${userId}/profile${userId}.png`;
+  const testPath = `profile-images/${userId}/profile1.png`;
   const constructedUrl = getProfileImageUrl(testPath);
   console.log(`TEST: User ${userId} image URL:`, constructedUrl);
-  console.log(`Expected: https://566917d7c764.ngrok-free.app/ChatApp-Backend/profile-images/${userId}/profile${userId}.png`);
+  console.log(`Expected: https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/${userId}/profile1.png`);
+
+  // Test the actual URL accessibility
+  if (constructedUrl) {
+    console.log(`Testing accessibility of: ${constructedUrl}`);
+    fetch(constructedUrl, { method: 'HEAD' })
+      .then(response => {
+        console.log(`URL test result for user ${userId}:`, response.status, response.statusText);
+        if (response.ok) {
+          console.log(`✅ Profile image URL is accessible for user ${userId}`);
+        } else {
+          console.log(`❌ Profile image URL returned error for user ${userId}:`, response.status);
+        }
+      })
+      .catch(error => {
+        console.log(`❌ Network error testing URL for user ${userId}:`, error);
+      });
+  }
+  
   return constructedUrl || '';
 };

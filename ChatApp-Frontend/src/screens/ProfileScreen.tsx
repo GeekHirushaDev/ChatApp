@@ -58,7 +58,31 @@ export default function ProfileScreen() {
       const profileImageUrl = getProfileImageUrl(userProfile.profileImage);
       console.log("Constructed profile image URL:", profileImageUrl);
       
-      if (profileImageUrl && !isUploading) {
+      // Also test the direct expected URL format
+      if (userProfile.id) {
+        const expectedUrl = `https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/${userProfile.id}/profile1.png`;
+        console.log("Expected direct URL:", expectedUrl);
+        
+        // Test if the expected URL works
+        fetch(expectedUrl, { method: 'HEAD' })
+          .then(response => {
+            console.log("Expected URL test result:", response.status, response.statusText);
+            if (response.ok) {
+              console.log("✅ Expected URL is working, using it directly");
+              setLocalProfileImage(expectedUrl);
+            } else if (profileImageUrl && !isUploading) {
+              console.log("Expected URL failed, using constructed URL:", profileImageUrl);
+              setLocalProfileImage(profileImageUrl);
+            }
+          })
+          .catch(error => {
+            console.log("Expected URL test failed:", error);
+            if (profileImageUrl && !isUploading) {
+              console.log("Using constructed URL from backend path:", profileImageUrl);
+              setLocalProfileImage(profileImageUrl);
+            }
+          });
+      } else if (profileImageUrl && !isUploading) {
         console.log("Setting profile image URL:", profileImageUrl);
         setLocalProfileImage(profileImageUrl);
         
@@ -186,11 +210,27 @@ export default function ProfileScreen() {
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: localProfileImage }}
+              onLoad={() => {
+                console.log("Successfully loaded local profile image:", localProfileImage);
+              }}
               onError={(error) => {
                 console.log("Failed to load local profile image:", localProfileImage);
                 console.log("Error:", error.nativeEvent.error);
-                // Clear the failed local image and fall back
-                setLocalProfileImage(null);
+                // Try to construct URL again with current profile data
+                if (userProfile?.profileImage) {
+                  const retryUrl = getProfileImageUrl(userProfile.profileImage);
+                  console.log("Retry URL constructed:", retryUrl);
+                  if (retryUrl && retryUrl !== localProfileImage) {
+                    console.log("Attempting retry with different URL");
+                    setLocalProfileImage(retryUrl);
+                  } else {
+                    // Clear the failed local image and fall back
+                    setLocalProfileImage(null);
+                  }
+                } else {
+                  // Clear the failed local image and fall back
+                  setLocalProfileImage(null);
+                }
               }}
             />
           ) : userProfile?.profileImage ? (
@@ -198,11 +238,23 @@ export default function ProfileScreen() {
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName) }}
+              onLoad={() => {
+                const imageUrl = getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName);
+                console.log("Successfully loaded user profile image:", imageUrl);
+              }}
               onError={(error) => {
                 console.log("Failed to load user profile image directly");
                 console.log("Original path:", userProfile.profileImage);
-                console.log("Constructed URL:", getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName));
+                const constructedUrl = getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName);
+                console.log("Constructed URL:", constructedUrl);
                 console.log("Error:", error.nativeEvent.error);
+                
+                // Try alternative URL construction
+                const directUrl = getProfileImageUrl(userProfile.profileImage);
+                console.log("Direct URL attempt:", directUrl);
+                
+                // Force fallback to generated avatar if image fails
+                console.log("Forcing fallback to generated avatar");
               }}
             />
           ) : (
