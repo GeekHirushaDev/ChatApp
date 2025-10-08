@@ -167,8 +167,8 @@ export default function HomeScreen() {
     >
       <TouchableOpacity className="h-14 w-14 rounded-full border-1 border-gray-300 justify-center items-center">
         <Image
-          source={{ 
-            uri: getBestProfileImageUrl(item.profileImage, item.friendName)
+          source={{
+            uri: `${getProfileImageUrl(`profile-images/${item.friendId}/profile1.png`)}?cb=${Date.now()}`
           }}
           className="h-14 w-14 rounded-full"
         />

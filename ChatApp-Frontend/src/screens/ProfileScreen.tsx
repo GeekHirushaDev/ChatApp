@@ -101,33 +101,20 @@ export default function ProfileScreen() {
     if (!result.canceled) {
       const selectedImageUri = result.assets[0].uri;
       setImage(selectedImageUri);
-      setLocalProfileImage(selectedImageUri); // Set local profile image immediately
+      setLocalProfileImage(selectedImageUri); // Show local image immediately
       setIsUploading(true);
-      
+
       try {
         const uploadResult = await uploadProfileImage(String(auth ? auth.userId : 0), selectedImageUri);
-        
-        if (uploadResult && uploadResult.status) {
-          // Update local profile image with server URL if available
-          if (uploadResult.profileImageUrl) {
-            setLocalProfileImage(uploadResult.profileImageUrl);
-          } else if (uploadResult.imagePath) {
-            const fullUrl = getProfileImageUrl(uploadResult.imagePath);
-            setLocalProfileImage(fullUrl);
-          }
-          // Refresh user profile and friend lists after successful upload
-          setTimeout(() => {
-            sendMessage({ type: "set_user_profile" });
-            sendMessage({ type: "get_chat_list" });
-            sendMessage({ type: "get_all_users" });
-            setIsUploading(false);
-            setImage(null);
-          }, 1000);
-        } else {
-          setIsUploading(false);
-        }
+
+        // Force immediate refresh of profile and chat list
+        setLocalProfileImage(null);
+        setImage(null);
+        sendMessage({ type: "set_user_profile" });
+        sendMessage({ type: "get_chat_list" });
+        sendMessage({ type: "get_all_users" });
+        setIsUploading(false);
       } catch (error) {
-        console.error("Profile image upload failed:", error);
         setIsUploading(false);
       }
     }
@@ -160,20 +147,8 @@ export default function ProfileScreen() {
             // Show cached profile image
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
-              source={{ uri: localProfileImage }}
-              onError={(error) => {
-                // Try to construct URL again with current profile data
-                if (userProfile?.profileImage) {
-                  const retryUrl = getProfileImageUrl(userProfile.profileImage);
-                  if (retryUrl && retryUrl !== localProfileImage) {
-                    setLocalProfileImage(retryUrl);
-                  } else {
-                    setLocalProfileImage(null);
-                  }
-                } else {
-                  setLocalProfileImage(null);
-                }
-              }}
+              source={{ uri: localProfileImage ? `${localProfileImage}?cb=${Date.now()}` : undefined }}
+              onError={() => setLocalProfileImage(null)}
             />
           ) : userProfile?.profileImage ? (
             // Show profile image directly from userProfile
