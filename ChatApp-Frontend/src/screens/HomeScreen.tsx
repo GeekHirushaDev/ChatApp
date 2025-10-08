@@ -40,7 +40,6 @@ export default function HomeScreen() {
   useFocusEffect(
     React.useCallback(() => {
       if (isConnected) {
-        console.log("Home screen focused, requesting updated chat list");
         sendMessage({ type: "get_chat_list" });
       }
     }, [isConnected, sendMessage])
@@ -158,14 +157,6 @@ export default function HomeScreen() {
         applied === "dark" ? "bg-gray-800" : "bg-gray-50"
       }`}
       onPress={() => {
-        // Debug chat item
-        console.log("=== CHAT ITEM DEBUG ===");
-        console.log("Friend ID:", item.friendId);
-        console.log("Friend Name:", item.friendName);
-        console.log("Profile Image Path:", item.profileImage);
-        console.log("Constructed URL:", getProfileImageUrl(item.profileImage));
-        console.log("=== END CHAT ITEM DEBUG ===");
-        
         navigation.navigate("SingleChatScreen", {
           chatId: item.friendId,
           friendName: item.friendName,
@@ -180,14 +171,6 @@ export default function HomeScreen() {
             uri: getBestProfileImageUrl(item.profileImage, item.friendName)
           }}
           className="h-14 w-14 rounded-full"
-          onError={() => {
-            console.log("=== IMAGE LOAD ERROR ===");
-            console.log("Failed to load profile image for:", item.friendName);
-            console.log("Backend path:", item.profileImage);
-            console.log("Constructed URL:", getProfileImageUrl(item.profileImage));
-            console.log("Best URL used:", getBestProfileImageUrl(item.profileImage, item.friendName));
-            console.log("=== END IMAGE LOAD ERROR ===");
-          }}
         />
       </TouchableOpacity>
       <View className="flex-1 ms-3">

@@ -11,8 +11,7 @@ import { useUserProfile } from "../socket/UseUserProfile";
 import { uploadProfileImage } from "../api/UserService";
 import { AuthContext } from "../components/AuthProvider";
 import { useWebSocket } from "../socket/WebSocketProvider";
-import { getProfileImageUrl, getFallbackAvatarUrl, getBestProfileImageUrl, testProfileImageUrl } from "../util/ImageUtils";
-import { debugImageUrl, findWorkingImageUrl } from "../util/ImageTestUtils";
+import { getProfileImageUrl, getFallbackAvatarUrl, getBestProfileImageUrl } from "../util/ImageUtils";
 
 type ProfileScreenProp = NativeStackNavigationProp<RootStack, "ProfileScreen">;
 export default function ProfileScreen() {
@@ -40,70 +39,38 @@ export default function ProfileScreen() {
   // Refresh profile when component mounts or when userProfile changes
   useEffect(() => {
     if (userProfile) {
-      console.log("=== PROFILE SCREEN DEBUG ===");
-      console.log("Full userProfile object:", JSON.stringify(userProfile, null, 2));
-      console.log("Profile image path from backend:", userProfile.profileImage);
-      console.log("User ID:", userProfile.id);
-      console.log("First Name:", userProfile.firstName);
-      console.log("Last Name:", userProfile.lastName);
-      
-      // Test URL construction for this user
-      if (userProfile.id) {
-        testProfileImageUrl(userProfile.id);
-      }
-      
       setIsLoading(false);
       
       // Update profile image if available from server and we're not currently uploading
       const profileImageUrl = getProfileImageUrl(userProfile.profileImage);
-      console.log("Constructed profile image URL:", profileImageUrl);
       
-      // Also test the direct expected URL format
+      // Test the direct expected URL format first
       if (userProfile.id) {
         const expectedUrl = `https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/${userProfile.id}/profile1.png`;
-        console.log("Expected direct URL:", expectedUrl);
         
         // Test if the expected URL works
         fetch(expectedUrl, { method: 'HEAD' })
           .then(response => {
-            console.log("Expected URL test result:", response.status, response.statusText);
             if (response.ok) {
-              console.log("✅ Expected URL is working, using it directly");
               setLocalProfileImage(expectedUrl);
             } else if (profileImageUrl && !isUploading) {
-              console.log("Expected URL failed, using constructed URL:", profileImageUrl);
               setLocalProfileImage(profileImageUrl);
             }
           })
           .catch(error => {
-            console.log("Expected URL test failed:", error);
             if (profileImageUrl && !isUploading) {
-              console.log("Using constructed URL from backend path:", profileImageUrl);
               setLocalProfileImage(profileImageUrl);
             }
           });
       } else if (profileImageUrl && !isUploading) {
-        console.log("Setting profile image URL:", profileImageUrl);
         setLocalProfileImage(profileImageUrl);
-        
-        // Also test the URL accessibility for debugging
-        if (userProfile.profileImage) {
-          debugImageUrl(userProfile.profileImage, "Profile Screen");
-        }
-      } else {
-        console.log("No valid profile image URL or currently uploading");
-        console.log("profileImageUrl:", profileImageUrl);
-        console.log("isUploading:", isUploading);
       }
-      
-      console.log("=== END PROFILE SCREEN DEBUG ===");
     }
   }, [userProfile, isUploading]);
 
   // Request profile data when WebSocket is connected
   useEffect(() => {
     if (isConnected && auth?.userId) {
-      console.log("WebSocket connected, requesting profile data for user:", auth.userId);
       sendMessage({ type: "set_user_profile" });
     }
   }, [isConnected, auth?.userId, sendMessage]);
@@ -112,14 +79,12 @@ export default function ProfileScreen() {
   useFocusEffect(
     React.useCallback(() => {
       if (isConnected && auth?.userId) {
-        console.log("Profile screen focused, requesting profile data");
         setImage(null); // Clear temporary image state when screen gains focus
         setLocalProfileImage(null); // Clear cached image to force refresh
         sendMessage({ type: "set_user_profile" });
         
         // Also request fresh data after a short delay to ensure backend has processed any recent uploads
         setTimeout(() => {
-          console.log("Requesting fresh profile data after delay");
           sendMessage({ type: "set_user_profile" });
         }, 500);
       }
@@ -140,40 +105,30 @@ export default function ProfileScreen() {
       setIsUploading(true);
       
       try {
-        console.log("Uploading profile image for user:", auth?.userId);
         const uploadResult = await uploadProfileImage(String(auth ? auth.userId : 0), selectedImageUri);
-        console.log("Upload result:", uploadResult);
         
         if (uploadResult && uploadResult.status) {
-          console.log("Profile image uploaded successfully");
           // Update local profile image with server URL if available
           if (uploadResult.profileImageUrl) {
-            console.log("Server returned profile image URL:", uploadResult.profileImageUrl);
             setLocalProfileImage(uploadResult.profileImageUrl);
           } else if (uploadResult.imagePath) {
-            console.log("Server returned image path:", uploadResult.imagePath);
             const fullUrl = getProfileImageUrl(uploadResult.imagePath);
-            console.log("Constructed full URL:", fullUrl);
             setLocalProfileImage(fullUrl);
           }
           // Refresh user profile and friend lists after successful upload
           setTimeout(() => {
             sendMessage({ type: "set_user_profile" });
-            // Also refresh friend list and chat list to update profile images
             sendMessage({ type: "get_chat_list" });
             sendMessage({ type: "get_all_users" });
             setIsUploading(false);
-            setImage(null); // Clear temporary image
-          }, 1000); // Reduced wait time
+            setImage(null);
+          }, 1000);
         } else {
-          console.error("Profile image upload failed:", uploadResult?.message);
           setIsUploading(false);
-          // Keep the local image even if upload fails
         }
       } catch (error) {
         console.error("Profile image upload failed:", error);
         setIsUploading(false);
-        // Keep the local image even if upload fails
       }
     }
   };
@@ -200,35 +155,22 @@ export default function ProfileScreen() {
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: image }}
-              onError={(error) => {
-                console.log("Failed to load temporary image:", image);
-                console.log("Error:", error.nativeEvent.error);
-              }}
             />
           ) : localProfileImage ? (
             // Show cached profile image
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: localProfileImage }}
-              onLoad={() => {
-                console.log("Successfully loaded local profile image:", localProfileImage);
-              }}
               onError={(error) => {
-                console.log("Failed to load local profile image:", localProfileImage);
-                console.log("Error:", error.nativeEvent.error);
                 // Try to construct URL again with current profile data
                 if (userProfile?.profileImage) {
                   const retryUrl = getProfileImageUrl(userProfile.profileImage);
-                  console.log("Retry URL constructed:", retryUrl);
                   if (retryUrl && retryUrl !== localProfileImage) {
-                    console.log("Attempting retry with different URL");
                     setLocalProfileImage(retryUrl);
                   } else {
-                    // Clear the failed local image and fall back
                     setLocalProfileImage(null);
                   }
                 } else {
-                  // Clear the failed local image and fall back
                   setLocalProfileImage(null);
                 }
               }}
@@ -238,24 +180,6 @@ export default function ProfileScreen() {
             <Image
               className="w-40 h-40 rounded-full border-gray-300 border-2"
               source={{ uri: getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName) }}
-              onLoad={() => {
-                const imageUrl = getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName);
-                console.log("Successfully loaded user profile image:", imageUrl);
-              }}
-              onError={(error) => {
-                console.log("Failed to load user profile image directly");
-                console.log("Original path:", userProfile.profileImage);
-                const constructedUrl = getBestProfileImageUrl(userProfile.profileImage, userProfile.firstName, userProfile.lastName);
-                console.log("Constructed URL:", constructedUrl);
-                console.log("Error:", error.nativeEvent.error);
-                
-                // Try alternative URL construction
-                const directUrl = getProfileImageUrl(userProfile.profileImage);
-                console.log("Direct URL attempt:", directUrl);
-                
-                // Force fallback to generated avatar if image fails
-                console.log("Forcing fallback to generated avatar");
-              }}
             />
           ) : (
             // Show fallback avatar

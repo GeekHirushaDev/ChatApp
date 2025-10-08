@@ -63,14 +63,6 @@ export default function SingleChatScreen({
                 uri: getBestProfileImageUrl(profileImage, friendName)
               }}
               className="h-14 w-14 rounded-full"
-              onError={() => {
-                console.log("=== SINGLE CHAT IMAGE ERROR ===");
-                console.log("Failed to load profile image in chat:", profileImage);
-                console.log("Friend name:", friendName);
-                console.log("Constructed URL:", getProfileImageUrl(profileImage));
-                console.log("Best URL used:", getBestProfileImageUrl(profileImage, friendName));
-                console.log("=== END SINGLE CHAT IMAGE ERROR ===");
-              }}
             />
           </TouchableOpacity>
           <View className="space-y-2 ">
