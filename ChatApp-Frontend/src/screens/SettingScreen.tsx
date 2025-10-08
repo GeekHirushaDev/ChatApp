@@ -33,13 +33,17 @@ export default function SettingScreen() {
             <TouchableOpacity
               key={option}
               className={` py-2 px-5 rounded-full mb-2  ${
-                preference === option ? "bg-green-600" : "bg-gray-200"
+                preference === option 
+                  ? "bg-green-600" 
+                  : applied === "dark" 
+                    ? "bg-gray-700" 
+                    : "bg-gray-200"
               }`}
               onPress={() => setPreference(option)}
             >
               <Text
                 className={`text-center font-bold ${
-                  applied === "dark" ? "text-slate-900" : "text-slate-900"
+                  applied === "dark" ? "text-white" : "text-black"
                 }`}
               >
                 {/* ex: light => l => L ====> slice(1) ==> Light */}

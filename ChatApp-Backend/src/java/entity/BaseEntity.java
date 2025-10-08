@@ -11,7 +11,7 @@ import javax.persistence.TemporalType;
 
 /**
  *
- * @author Dilhara
+ * @author GeekHirusha Dev
  */
 @MappedSuperclass
 public class BaseEntity implements Serializable {

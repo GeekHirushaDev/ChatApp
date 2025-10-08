@@ -17,7 +17,7 @@ import javax.persistence.Table;
 
 /**
  *
- * @author Dilhara
+ * @author GeekHirusha Dev
  */
 @Entity
 @Table(name = "chat")

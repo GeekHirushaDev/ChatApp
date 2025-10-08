@@ -10,7 +10,7 @@ import java.util.Date;
 
 /**
  *
- * @author Dilhara
+ * @author GeekHirusha Dev
  */
 public class UserDTO implements Serializable {
 

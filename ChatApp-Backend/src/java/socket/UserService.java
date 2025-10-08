@@ -25,7 +25,7 @@ import util.HibernateUtil;
 
 /**
  *
- * @author Dilhara
+ * @author GeekHirusha Dev
  */
 public class UserService {
 
@@ -126,35 +126,58 @@ public class UserService {
 
     public static Map<String, Object> saveNewContact(int myId, User user) {
         Session s = HibernateUtil.getSessionFactory().openSession();
+        Transaction tr = s.beginTransaction();
 
         JsonObject responseObject = new JsonObject();
         responseObject.addProperty("responseStatus", Boolean.FALSE);
-        Criteria c1 = s.createCriteria(User.class);
-        c1.add(Restrictions.and(Restrictions.eq("countryCode", user.getCountryCode()),
-                Restrictions.eq("contactNo", user.getContactNo())));
-        User u1 = (User) c1.uniqueResult();
-        if (u1 == null) {
-            responseObject.addProperty("message", "This user not in ChatApp");
-        } else {
-            User me = (User) s.get(User.class, myId);
-            //Check this user already added to the FriendList Tabele
-            Criteria c2 = s.createCriteria(FriendList.class);
-            c2.add(Restrictions.and(Restrictions.eq("userId", me),
-                    Restrictions.eq("friendId", u1)));
-            FriendList friendList = (FriendList) c2.uniqueResult();
-            responseObject.addProperty("responseStatus", Boolean.TRUE);
-            if (friendList == null) {
-                FriendList fl = new FriendList(me, u1, user.getFirstName() + " " + user.getLastName());
-                s.save(fl);
-                responseObject.addProperty("message", "This user added to friend list");
+        
+        try {
+            System.out.println("Looking for user with countryCode: " + user.getCountryCode() + ", contactNo: " + user.getContactNo());
+            
+            Criteria c1 = s.createCriteria(User.class);
+            c1.add(Restrictions.and(Restrictions.eq("countryCode", user.getCountryCode()),
+                    Restrictions.eq("contactNo", user.getContactNo())));
+            User u1 = (User) c1.uniqueResult();
+            
+            if (u1 == null) {
+                System.out.println("User not found in database");
+                responseObject.addProperty("message", "This user not in ChatApp");
             } else {
-                friendList.setDisplayName(user.getFirstName() + " " + user.getLastName());
-                s.update(friendList);
-                responseObject.addProperty("message", "This user already in friend list");
+                System.out.println("Found user: " + u1.getFirstName() + " " + u1.getLastName());
+                User me = (User) s.get(User.class, myId);
+                System.out.println("Current user: " + me.getFirstName() + " " + me.getLastName());
+                
+                //Check this user already added to the FriendList Table
+                Criteria c2 = s.createCriteria(FriendList.class);
+                c2.add(Restrictions.and(Restrictions.eq("userId", me),
+                        Restrictions.eq("friendId", u1)));
+                FriendList friendList = (FriendList) c2.uniqueResult();
+                
+                responseObject.addProperty("responseStatus", Boolean.TRUE);
+                if (friendList == null) {
+                    System.out.println("Adding new friend to friend list");
+                    FriendList fl = new FriendList(me, u1, user.getFirstName() + " " + user.getLastName());
+                    s.save(fl);
+                    responseObject.addProperty("message", "This user added to friend list");
+                } else {
+                    System.out.println("Friend already exists, updating display name");
+                    friendList.setDisplayName(user.getFirstName() + " " + user.getLastName());
+                    s.update(friendList);
+                    responseObject.addProperty("message", "This user already in friend list");
+                }
             }
+            
+            tr.commit();
+            System.out.println("Transaction committed successfully");
+        } catch (Exception e) {
+            tr.rollback();
+            responseObject.addProperty("responseStatus", Boolean.FALSE);
+            responseObject.addProperty("message", "Error adding friend: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            s.close();
         }
-        s.beginTransaction().commit();
-        s.close();
+        
         Map<String, Object> map = new HashMap<>();
         map.put("type", "new_contact_response_text");
         map.put("payload", responseObject);
@@ -165,11 +188,15 @@ public class UserService {
         Session s = HibernateUtil.getSessionFactory().openSession();
         User user = (User) s.get(User.class, userId);
         UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
         dto.setCountryCode(user.getCountryCode());
         dto.setContactNo(user.getContactNo());
         dto.setProfileImage(ProfileService.getProfileUrl(userId));
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setStatus(user.getStatus());
 
         s.close();
         Map<String, Object> map = new HashMap();

@@ -10,7 +10,10 @@ export function useUserList() {
     if (!socket) {
       return;
     }
+    
+    // Request initial user list
     sendMessage({ type: "get_all_users" });
+    
     const onMessage = (event: MessageEvent) => {
       const response: WSResponse = JSON.parse(event.data);
       if (response.type === "all_users") {
@@ -22,7 +25,7 @@ export function useUserList() {
     return () => {
       socket.removeEventListener("message", onMessage);
     };
-  }, [socket]);
+  }, [socket, sendMessage]);
 
   return users;
 }

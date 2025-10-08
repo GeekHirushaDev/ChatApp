@@ -54,27 +54,41 @@ public class UserController extends HttpServlet {
             c1.add(Restrictions.eq("countryCode", countryCode));
             c1.add(Restrictions.eq("contactNo", contactNo));
             User user = (User) c1.uniqueResult();
+            
+            Transaction tr = s.beginTransaction();
+            int id;
+            
             if (user != null) {
-                responseObject.addProperty("message", "This contact number already exists!");
+                // Update existing user with new information
+                user.setFirstName(firstName);
+                user.setLastName(lastName);
+                user.setUpdatedAt(new Date());
+                
+                s.update(user);
+                id = user.getId();
+                
+                responseObject.addProperty("message", "Account updated successfully!");
             } else {
+                // Create new user
                 user = new User(firstName, lastName, countryCode, contactNo);
                 user.setCreatedAt(new Date());
                 user.setUpdatedAt(new Date());
-               
-
-                Transaction tr = s.beginTransaction();
-
-                int id = (int) s.save(user);
-                tr.commit();
-                s.close();
-
-                responseObject.add("user", gson.toJsonTree(user));
-
-                new ProfileService().saveProfileImage(id, request);
-               
-                responseObject.addProperty("status", true);
-                responseObject.addProperty("userId", id);
+                
+                id = (int) s.save(user);
+                
+                responseObject.addProperty("message", "Account created successfully!");
             }
+            
+            tr.commit();
+            s.close();
+
+            responseObject.add("user", gson.toJsonTree(user));
+
+            // Save/update profile image for both new and existing users
+            new ProfileService().saveProfileImage(id, request);
+           
+            responseObject.addProperty("status", true);
+            responseObject.addProperty("userId", id);
         }
         response.setContentType("application/json");
         response.getWriter().write(gson.toJson(responseObject));

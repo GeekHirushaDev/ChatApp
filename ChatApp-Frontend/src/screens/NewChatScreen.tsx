@@ -15,12 +15,14 @@ import {
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { User } from "../socket/chat";
 import { useUserList } from "../socket/UseUserList";
+import { useTheme } from "../theme/ThemeProvider";
 
 type NewChatScreenProp = NativeStackNavigationProp<RootStack, "NewChatScreen">;
 export default function NewChatScreen() {
   const navigation = useNavigation<NewChatScreenProp>();
   const [search, setSearch] = useState("");
   const users = useUserList();
+  const { applied } = useTheme();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -33,11 +35,11 @@ export default function NewChatScreen() {
               navigation.goBack();
             }}
           >
-            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+            <Ionicons name="arrow-back-sharp" size={24} color={applied === "dark" ? "white" : "black"} />
           </TouchableOpacity>
           <View className="flex-col">
-            <Text className="text-lg font-bold">Select Contact</Text>
-            <Text className="text-sm font-bold">{users.length} contacts</Text>
+            <Text className={`text-lg font-bold ${applied === "dark" ? "text-white" : "text-black"}`}>Select Contact</Text>
+            <Text className={`text-sm font-bold ${applied === "dark" ? "text-gray-300" : "text-gray-600"}`}>{users.length} contacts</Text>
           </View>
         </View>
       ),
@@ -47,7 +49,9 @@ export default function NewChatScreen() {
 
   const renderItem = ({ item }: { item: User }) => (
     <TouchableOpacity
-      className="justify-start items-center gap-x-3 px-3 py-2 flex-row bg-gray-50 mt-1"
+      className={`justify-start items-center gap-x-3 px-3 py-2 flex-row mt-1 ${
+        applied === "dark" ? "bg-gray-800" : "bg-gray-50"
+      }`}
       onPress={() => {
         navigation.replace("SingleChatScreen", {
           chatId: item.id,
@@ -77,10 +81,10 @@ export default function NewChatScreen() {
         </TouchableOpacity>
       </View>
       <View className="flex-col gap-y-1">
-        <Text className="font-bold text-xl">
+        <Text className={`font-bold text-xl ${applied === "dark" ? "text-white" : "text-black"}`}>
           {item.firstName} {item.lastName}
         </Text>
-        <Text className="text-sm italic">
+        <Text className={`text-sm italic ${applied === "dark" ? "text-gray-400" : "text-gray-600"}`}>
           {item.status === "ACTIVE"
             ? "Already in Friend List; Message Now"
             : "Hey there! I am using ChatApp"}
@@ -100,16 +104,21 @@ export default function NewChatScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className={`flex-1 ${applied === "dark" ? "bg-black" : "bg-white"}`}
       edges={["right", "bottom", "left"]}
     >
       <StatusBar hidden={false} translucent={true} />
       <View className="flex-1">
-        <View className="items-center flex-row mx-2 border-gray-300 border-2 rounded-full px-3 h-14 mt-3">
+        <View className={`items-center flex-row mx-2 border-2 rounded-full px-3 h-14 mt-3 ${
+          applied === "dark" ? "border-gray-600" : "border-gray-300"
+        }`}>
           <Ionicons name="search" size={20} color={"gray"} />
           <TextInput
-            className="flex-1 text-lg font-bold ps-2"
+            className={`flex-1 text-lg font-bold ps-2 ${
+              applied === "dark" ? "text-white" : "text-black"
+            }`}
             placeholder="Search"
+            placeholderTextColor={applied === "dark" ? "gray" : "gray"}
             value={search}
             onChangeText={(text) => setSearch(text)}
           />
@@ -120,9 +129,9 @@ export default function NewChatScreen() {
             onPress={() => navigation.navigate("NewContactScreen")}
           >
             <View className="bg-green-600 items-center justify-center w-12 h-12 rounded-full">
-              <Feather name="user-plus" size={24} color="black" />
+              <Feather name="user-plus" size={24} color="white" />
             </View>
-            <Text className="text-lg font-bold">New Contact</Text>
+            <Text className={`text-lg font-bold ${applied === "dark" ? "text-white" : "text-black"}`}>New Contact</Text>
           </TouchableOpacity>
         </View>
         <View className="mt-2">

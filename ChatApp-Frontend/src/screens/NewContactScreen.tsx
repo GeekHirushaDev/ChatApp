@@ -3,7 +3,7 @@ import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStack } from "../../App";
 import { useNavigation } from "@react-navigation/native";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { FloatingLabelInput } from "react-native-floating-label-input";
 import CountryPicker, {
@@ -57,6 +57,16 @@ export default function NewContactScreen() {
   const newContact = useSendNewContact();
   const sendNewContact = newContact.sendNewContact;
   const responseText = newContact.responseText;
+  const isSuccess = newContact.isSuccess;
+
+  // Navigate back when contact is successfully added
+  useEffect(() => {
+    if (isSuccess) {
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1500); // Wait 1.5 seconds to let user see the success message
+    }
+  }, [isSuccess, navigation]);
 
   const sendData = () => {
     sendNewContact({

@@ -20,6 +20,7 @@ import { useChatList } from "../socket/UseChatList";
 import { formatChatTime } from "../util/DateFormatter";
 import { Chat } from "../socket/chat";
 import { AuthContext } from "../components/AuthProvider";
+import { useTheme } from "../theme/ThemeProvider";
 
 type HomeScreenProps = NativeStackNavigationProp<RootStack, "HomeScreen">;
 
@@ -29,25 +30,26 @@ export default function HomeScreen() {
   const chatList = useChatList();
   const [isModalVisible, setModalVisible] = useState(false);
   const auth = useContext(AuthContext);
+  const { applied } = useTheme();
 
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
         <View
-          className={`h-20 bg-white justify-center items-center flex-row shadow-2xl elevation-2xl ${
-            Platform.OS === "ios" ? `py-5` : `py-0`
-          }`}
+          className={`h-20 justify-center items-center flex-row shadow-2xl elevation-2xl ${
+            applied === "dark" ? "bg-black" : "bg-white"
+          } ${Platform.OS === "ios" ? `py-5` : `py-0`}`}
         >
           <View className="flex-1 items-start ms-3">
-            <Text className="font-bold text-2xl">ChatApp</Text>
+            <Text className={`font-bold text-2xl ${applied === "dark" ? "text-white" : "text-black"}`}>ChatApp</Text>
           </View>
           <View className="me-3">
             <View className="flex-row space-x-4">
               <TouchableOpacity className="me-5">
-                <Ionicons name="camera" size={26} color="black" />
+                <Ionicons name="camera" size={26} color={applied === "dark" ? "white" : "black"} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <Ionicons name="ellipsis-vertical" size={24} color="black" />
+                <Ionicons name="ellipsis-vertical" size={24} color={applied === "dark" ? "white" : "black"} />
               </TouchableOpacity>
               <Modal
                 animationType="fade"
@@ -72,7 +74,7 @@ export default function HomeScreen() {
                       {/* content view */}
 
                       <View
-                        className="bg-white rounded-md w-60 p-3"
+                        className={`rounded-md w-60 p-3 ${applied === "dark" ? "bg-gray-800" : "bg-white"}`}
                         style={{
                           shadowColor: "#000",
                           shadowOffset: { width: 0, height: 2 },
@@ -88,7 +90,7 @@ export default function HomeScreen() {
                             setModalVisible(false);
                           }}
                         >
-                          <Text className="font-bold text-lg">Settings</Text>
+                          <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>Settings</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           className="h-12 my-2 justify-center items-start border-b-2 border-b-gray-100"
@@ -97,7 +99,7 @@ export default function HomeScreen() {
                             setModalVisible(false);
                           }}
                         >
-                          <Text className="font-bold text-lg">My Profile</Text>
+                          <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>My Profile</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           className="h-12 my-2 justify-center items-start border-b-2 border-b-gray-100"
@@ -105,7 +107,7 @@ export default function HomeScreen() {
                             if (auth) auth.signOut();
                           }}
                         >
-                          <Text className="font-bold text-lg">Log Out</Text>
+                          <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>Log Out</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -134,7 +136,9 @@ export default function HomeScreen() {
 
   const renderItem = ({ item }: { item: Chat }) => (
     <TouchableOpacity
-      className="flex-row items-center py-2 px-3 bg-gray-50 my-0.5"
+      className={`flex-row items-center py-2 px-3 my-0.5 ${
+        applied === "dark" ? "bg-gray-800" : "bg-gray-50"
+      }`}
       onPress={() => {
         navigation.navigate("SingleChatScreen", {
           chatId: item.friendId,
@@ -170,19 +174,25 @@ export default function HomeScreen() {
       <View className="flex-1 ms-3">
         <View className="flex-row justify-between">
           <Text
-            className="font-bold text-xl text-gray-600"
+            className={`font-bold text-xl ${
+              applied === "dark" ? "text-gray-200" : "text-gray-600"
+            }`}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {item.friendName}
           </Text>
-          <Text className="font-bold text-xs text-gray-500">
+          <Text className={`font-bold text-xs ${
+            applied === "dark" ? "text-gray-400" : "text-gray-500"
+          }`}>
             {formatChatTime(item.lastTimeStamp)}
           </Text>
         </View>
         <View className="flex-row justify-between items-center">
           <Text
-            className="text-gray-500 flex-1 text-base"
+            className={`flex-1 text-base ${
+              applied === "dark" ? "text-gray-400" : "text-gray-500"
+            }`}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -202,15 +212,20 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white p-0"
+      className={`flex-1 p-0 ${applied === "dark" ? "bg-black" : "bg-white"}`}
       edges={["right", "bottom", "left"]}
     >
       <StatusBar hidden={false} />
-      <View className="items-center flex-row mx-2 border-gray-300 border-2 rounded-full px-3 h-14 mt-3">
-        <Ionicons name="search" size={20} color={"gray"} />
+      <View className={`items-center flex-row mx-2 border-2 rounded-full px-3 h-14 mt-3 ${
+        applied === "dark" ? "border-gray-600" : "border-gray-300"
+      }`}>
+        <Ionicons name="search" size={20} color={applied === "dark" ? "gray" : "gray"} />
         <TextInput
-          className="flex-1 text-lg font-bold ps-2"
+          className={`flex-1 text-lg font-bold ps-2 ${
+            applied === "dark" ? "text-white" : "text-black"
+          }`}
           placeholder="Search"
+          placeholderTextColor={applied === "dark" ? "gray" : "gray"}
           value={search}
           onChangeText={(text) => setSearch(text)}
         />

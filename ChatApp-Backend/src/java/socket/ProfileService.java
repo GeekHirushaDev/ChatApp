@@ -18,7 +18,7 @@ import javax.servlet.http.Part;
 
 /**
  *
- * @author Dilhara
+ * @author GeekHirusha Dev
  */
 public class ProfileService {
 
@@ -43,17 +43,17 @@ public class ProfileService {
     //work with WebSocket
     public static String getProfileUrl(int userId) {
         try {
-
-            URL url = new URI("http://localhost:8080/ChatApp-Frontend/profile-images/" + userId + "/profile1.png").toURL(); // java.net.URL
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // java.net.HttpURLConnection
+            // Check if profile image exists using the actual server URL
+            URL url = new URI(ChatService.URL + "/ChatApp-Backend/profile-images/" + userId + "/profile1.png").toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("HEAD");
+            conn.setConnectTimeout(5000); // 5 second timeout
+            conn.setReadTimeout(5000); // 5 second timeout
             int responseCode = conn.getResponseCode();
-            conn.connect();
 
             String profile;
-
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                profile = ChatService.URL + "/ChatApp-Frontend/profile-images/" + userId + "/profile1.png";
+                profile = ChatService.URL + "/ChatApp-Backend/profile-images/" + userId + "/profile1.png";
             } else {
                 profile = "";
             }

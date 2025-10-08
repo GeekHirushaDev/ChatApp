@@ -22,6 +22,7 @@ import { useSingleChat } from "../socket/UseSingleChat";
 import { Chat } from "../socket/chat";
 import { formatChatTime } from "../util/DateFormatter";
 import { useSendChat } from "../socket/UseSendChat";
+import { useTheme } from "../theme/ThemeProvider";
 
 type SingleChatScreenProps = NativeStackScreenProps<
   RootStack,
@@ -37,6 +38,7 @@ export default function SingleChatScreen({
   const friend = singleChat.friend;
   const sendMessage = useSendChat();
   const [input, setInput] = useState("");
+  const { applied } = useTheme();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -49,7 +51,7 @@ export default function SingleChatScreen({
               navigation.goBack();
             }}
           >
-            <Ionicons name="arrow-back-sharp" size={24} color="black" />
+            <Ionicons name="arrow-back-sharp" size={24} color={applied === "dark" ? "white" : "black"} />
           </TouchableOpacity>
           <TouchableOpacity className="h-14 w-14 rounded-full border-1 border-gray-300 justify-center items-center">
             <Image
@@ -58,10 +60,10 @@ export default function SingleChatScreen({
             />
           </TouchableOpacity>
           <View className="space-y-2 ">
-            <Text className="font-bold text-2xl">
+            <Text className={`font-bold text-2xl ${applied === "dark" ? "text-white" : "text-black"}`}>
               {friend ? friend.firstName + " " + friend.lastName : friendName}
             </Text>
-            <Text className="italic text-xs font-bold text-gray-500">
+            <Text className={`italic text-xs font-bold ${applied === "dark" ? "text-gray-400" : "text-gray-500"}`}>
               {friend?.status === "ONLINE"
                 ? "Online"
                 : `Last seen ${formatChatTime(friend?.updatedAt ?? "")}`}
@@ -71,7 +73,7 @@ export default function SingleChatScreen({
       ),
       headerRight: () => (
         <TouchableOpacity>
-          <Ionicons name="ellipsis-vertical" size={24} color="black" />
+          <Ionicons name="ellipsis-vertical" size={24} color={applied === "dark" ? "white" : "black"} />
         </TouchableOpacity>
       ),
     });
@@ -120,7 +122,7 @@ export default function SingleChatScreen({
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className={`flex-1 ${applied === "dark" ? "bg-black" : "bg-white"}`}
       edges={["right", "bottom", "left"]}
     >
       <StatusBar hidden={false} />
@@ -137,13 +139,16 @@ export default function SingleChatScreen({
           keyExtractor={(_, index) => index.toString()}
           contentContainerStyle={{ paddingBottom: 60 }}
         />
-        <View className="flex-row items-end p-2 bg-white">
+        <View className={`flex-row items-end p-2 ${applied === "dark" ? "bg-black" : "bg-white"}`}>
           <TextInput
             value={input}
             onChangeText={(text) => setInput(text)}
             multiline
             placeholder="Type a message"
-            className="flex-1 min-h-14 max-h-32 h-auto px-5 py-2 bg-gray-200 rounded-3xl text-base"
+            placeholderTextColor={applied === "dark" ? "gray" : "gray"}
+            className={`flex-1 min-h-14 max-h-32 h-auto px-5 py-2 rounded-3xl text-base ${
+              applied === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-black"
+            }`}
           />
           <TouchableOpacity
             className="bg-green-600 w-14 h-14 items-center justify-center rounded-full"
