@@ -26,7 +26,7 @@ public class ChatService {
 
     private static final ConcurrentHashMap<Integer, Session> SESSIONS = new ConcurrentHashMap<>();
     private static final Gson GSON = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
-    public static final String URL = "https://8a167e9c97b7.ngrok-free.app"; // ngrok proxy url
+    public static final String URL = "https://cd91bd59357a.ngrok-free.app"; // ngrok proxy url
 
     public static void register(int userId, Session session) {
         SESSIONS.put(userId, session);
@@ -59,6 +59,11 @@ public class ChatService {
             Map<Integer, ChatSummary> map = new LinkedHashMap<>();
             for (FriendList fl : friendList) {
                 User myFriend = fl.getFriendId();
+                // Prefer custom display name from FriendList, fallback to first + last name
+                String displayName = fl.getDisplayName();
+                if (displayName == null || displayName.trim().isEmpty()) {
+                    displayName = (myFriend.getFirstName() + " " + myFriend.getLastName()).trim();
+                }
                 Criteria c1 = session.createCriteria(Chat.class);
                 Criterion rest1 = Restrictions.and(Restrictions.eq("from.id", userId),
                         Restrictions.eq("to.id", myFriend.getId()));
@@ -84,7 +89,7 @@ public class ChatService {
                         String profileImage = ProfileService.getProfileUrl(myFriend.getId());
                         map.put(myFriend.getId(), new ChatSummary(
                                 myFriend.getId(),
-                                myFriend.getFirstName() + " " + myFriend.getLastName(),
+                                displayName,
                                 chats.get(0).getMessage(),
                                 chats.get(0).getUpdatedAt(),
                                 unread,
@@ -184,6 +189,9 @@ public class ChatService {
             friend1.setFriendId(friend);
             friend1.setUserId(me);
             friend1.setStatus(Status.ACTIVE);
+            // set default display name using friend's first + last
+            friend1.setDisplayName(((friend.getFirstName() != null ? friend.getFirstName() : "") + " "
+                    + (friend.getLastName() != null ? friend.getLastName() : "")).trim());
             s.save(friend1);
         }
 
@@ -195,6 +203,9 @@ public class ChatService {
             friend1.setFriendId(me);
             friend1.setUserId(friend);
             friend1.setStatus(Status.ACTIVE);
+            // set default display name using my first + last for the friend's view
+            friend1.setDisplayName(((me.getFirstName() != null ? me.getFirstName() : "") + " "
+                    + (me.getLastName() != null ? me.getLastName() : "")).trim());
             s.save(friend1);
         }
 

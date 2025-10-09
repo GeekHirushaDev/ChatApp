@@ -46,8 +46,8 @@ export default function ProfileScreen() {
       
       // Test the direct expected URL format first
       if (userProfile.id) {
-        const expectedUrl = `https://8a167e9c97b7.ngrok-free.app/ChatApp-Backend/profile-images/${userProfile.id}/profile1.png`;
-        
+        const expectedUrl = `${process.env.EXPO_PUBLIC_APP_URL}/ChatApp-Backend/profile-images/${userProfile.id}/profile1.png`;
+
         // Test if the expected URL works
         fetch(expectedUrl, { method: 'HEAD' })
           .then(response => {
