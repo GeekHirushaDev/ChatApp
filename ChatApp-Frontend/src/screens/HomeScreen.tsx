@@ -1,5 +1,6 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -32,6 +33,8 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const chatList = useChatList();
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isContextMenuVisible, setContextMenuVisible] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const auth = useContext(AuthContext);
   const { applied } = useTheme();
   const { sendMessage, isConnected } = useWebSocket();
@@ -44,6 +47,67 @@ export default function HomeScreen() {
       }
     }, [isConnected, sendMessage])
   );
+
+  const handleLongPress = (item: Chat) => {
+    setSelectedChat(item);
+    setContextMenuVisible(true);
+  };
+
+  const handleDeleteChat = () => {
+    if (selectedChat && auth?.userId) {
+      Alert.alert(
+        "Delete Chat",
+        `Are you sure you want to delete the chat with ${selectedChat.friendName}?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              sendMessage({ 
+                type: "delete_chat", 
+                userId: auth.userId, 
+                friendId: selectedChat.friendId 
+              });
+              setContextMenuVisible(false);
+              setSelectedChat(null);
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleClearMessages = () => {
+    if (selectedChat && auth?.userId) {
+      Alert.alert(
+        "Clear All Messages",
+        `Are you sure you want to clear all messages with ${selectedChat.friendName}?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Clear",
+            style: "destructive",
+            onPress: () => {
+              sendMessage({ 
+                type: "clear_messages", 
+                userId: auth.userId, 
+                friendId: selectedChat.friendId 
+              });
+              setContextMenuVisible(false);
+              setSelectedChat(null);
+            },
+          },
+        ]
+      );
+    }
+  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -138,6 +202,77 @@ export default function HomeScreen() {
     });
   }, [navigation, isModalVisible, applied]);
 
+  // Context Menu Modal
+  const renderContextMenu = () => (
+    <Modal
+      animationType="fade"
+      visible={isContextMenuVisible}
+      transparent={true}
+      onRequestClose={() => setContextMenuVisible(false)}
+    >
+      <Pressable
+        className="flex-1 bg-transparent"
+        onPress={() => {
+          setContextMenuVisible(false);
+          setSelectedChat(null);
+        }}
+      >
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <View className="justify-center items-center flex-1">
+            <View
+              className={`rounded-lg w-64 p-4 ${applied === "dark" ? "bg-gray-800" : "bg-white"}`}
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+                elevation: 5,
+              }}
+            >
+              <Text className={`text-lg font-bold mb-4 text-center ${applied === "dark" ? "text-white" : "text-black"}`}>
+                {selectedChat?.friendName}
+              </Text>
+              
+              <TouchableOpacity
+                className={`h-12 my-2 justify-center items-center rounded-lg ${applied === "dark" ? "bg-gray-700" : "bg-gray-100"}`}
+                onPress={handleClearMessages}
+              >
+                <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>
+                  Clear All Messages
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className={`h-12 my-2 justify-center items-center rounded-lg ${applied === "dark" ? "bg-red-800" : "bg-red-100"}`}
+                onPress={handleDeleteChat}
+              >
+                <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-red-600"}`}>
+                  Delete Chat
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className={`h-12 my-2 justify-center items-center rounded-lg ${applied === "dark" ? "bg-gray-700" : "bg-gray-100"}`}
+                onPress={() => {
+                  setContextMenuVisible(false);
+                  setSelectedChat(null);
+                }}
+              >
+                <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+
   const filterdChats = [...chatList]
     .filter((chat) => {
       return (
@@ -164,6 +299,7 @@ export default function HomeScreen() {
           profileImage: getBestProfileImageUrl(item.profileImage, item.friendName)
         });
       }}
+      onLongPress={() => handleLongPress(item)}
     >
       <TouchableOpacity className="h-14 w-14 rounded-full border-1 border-gray-300 justify-center items-center">
         <Image
@@ -247,6 +383,7 @@ export default function HomeScreen() {
           <Ionicons name="chatbox-ellipses" size={26} color="black" />
         </TouchableOpacity>
       </View>
+      {renderContextMenu()}
     </SafeAreaView>
   );
 }

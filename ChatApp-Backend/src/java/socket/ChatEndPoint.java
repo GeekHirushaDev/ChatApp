@@ -133,6 +133,16 @@ public class ChatEndPoint {
                     ChatService.sendToUser(userId, envelope);
                     break;
                 }
+                case "delete_chat": {
+                    int friendId = (int) ((double) map.get("friendId"));
+                    ChatService.deleteChat(userId, friendId);
+                    break;
+                }
+                case "clear_messages": {
+                    int friendId = (int) ((double) map.get("friendId"));
+                    ChatService.clearMessages(userId, friendId);
+                    break;
+                }
                 default: {
                     System.out.println("Ignored unknown client type: " + type);
                 }

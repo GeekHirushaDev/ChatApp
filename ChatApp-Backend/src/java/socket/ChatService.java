@@ -226,4 +226,93 @@ public class ChatService {
         ChatService.sendToUser(chat.getFrom().getId(), fromMap); // update from home chat
         ChatService.sendToUser(chat.getTo().getId(), toMap); // update to home chat
     }
+
+    public static void deleteChat(int userId, int friendId) {
+        org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession();
+        try {
+            Transaction tr = session.beginTransaction();
+            
+            // Delete all chat messages between the two users
+            Criteria c = session.createCriteria(Chat.class);
+            c.add(Restrictions.or(
+                    Restrictions.and(
+                            Restrictions.eq("from.id", userId),
+                            Restrictions.eq("to.id", friendId)
+                    ),
+                    Restrictions.and(
+                            Restrictions.eq("from.id", friendId),
+                            Restrictions.eq("to.id", userId)
+                    )
+            ));
+            List<Chat> chats = c.list();
+            
+            for (Chat chat : chats) {
+                session.delete(chat);
+            }
+            
+            // Remove friend relationship from both sides
+            Criteria friendCriteria1 = session.createCriteria(FriendList.class);
+            friendCriteria1.add(Restrictions.and(
+                    Restrictions.eq("userId.id", userId),
+                    Restrictions.eq("friendId.id", friendId)
+            ));
+            FriendList friendList1 = (FriendList) friendCriteria1.uniqueResult();
+            if (friendList1 != null) {
+                session.delete(friendList1);
+            }
+            
+            Criteria friendCriteria2 = session.createCriteria(FriendList.class);
+            friendCriteria2.add(Restrictions.and(
+                    Restrictions.eq("userId.id", friendId),
+                    Restrictions.eq("friendId.id", userId)
+            ));
+            FriendList friendList2 = (FriendList) friendCriteria2.uniqueResult();
+            if (friendList2 != null) {
+                session.delete(friendList2);
+            }
+            
+            tr.commit();
+            
+            // Send updated friend list to both users
+            sendToUser(userId, friendListEnvelope(getFriendChatsForUser(userId)));
+            sendToUser(friendId, friendListEnvelope(getFriendChatsForUser(friendId)));
+            
+        } finally {
+            session.close();
+        }
+    }
+
+    public static void clearMessages(int userId, int friendId) {
+        org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession();
+        try {
+            Transaction tr = session.beginTransaction();
+            
+            // Delete all chat messages between the two users
+            Criteria c = session.createCriteria(Chat.class);
+            c.add(Restrictions.or(
+                    Restrictions.and(
+                            Restrictions.eq("from.id", userId),
+                            Restrictions.eq("to.id", friendId)
+                    ),
+                    Restrictions.and(
+                            Restrictions.eq("from.id", friendId),
+                            Restrictions.eq("to.id", userId)
+                    )
+            ));
+            List<Chat> chats = c.list();
+            
+            for (Chat chat : chats) {
+                session.delete(chat);
+            }
+            
+            tr.commit();
+            
+            // Send updated friend list to both users
+            sendToUser(userId, friendListEnvelope(getFriendChatsForUser(userId)));
+            sendToUser(friendId, friendListEnvelope(getFriendChatsForUser(friendId)));
+            
+        } finally {
+            session.close();
+        }
+    }
 }
