@@ -2,6 +2,7 @@ export interface User {
   id: number;
   firstName: string;
   lastName: string;
+  displayName?: string;
   countryCode: string;
   contactNo: string;
   profileImage?: string;

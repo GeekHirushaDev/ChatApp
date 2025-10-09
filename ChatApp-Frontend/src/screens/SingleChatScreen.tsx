@@ -67,7 +67,7 @@ export default function SingleChatScreen({
           </TouchableOpacity>
           <View className="space-y-2 ">
             <Text className={`font-bold text-2xl ${applied === "dark" ? "text-white" : "text-black"}`}>
-              {friend ? friend.firstName + " " + friend.lastName : friendName}
+              {friendName || friend?.displayName || `${friend?.firstName ?? ""} ${friend?.lastName ?? ""}`.trim()}
             </Text>
             <Text className={`italic text-xs font-bold ${applied === "dark" ? "text-gray-400" : "text-gray-500"}`}>
               {friend?.status === "ONLINE"

@@ -58,7 +58,7 @@ export default function NewChatScreen() {
       onPress={() => {
         navigation.replace("SingleChatScreen", {
           chatId: item.id,
-          friendName: `${item.firstName} ${item.lastName}`,
+          friendName: item.displayName ?? `${item.firstName} ${item.lastName}`,
           lastSeenTime: item.updatedAt,
           profileImage: item.profileImage
             ? item.profileImage
@@ -85,7 +85,7 @@ export default function NewChatScreen() {
       </View>
       <View className="flex-col gap-y-1">
         <Text className={`font-bold text-xl ${applied === "dark" ? "text-white" : "text-black"}`}>
-          {item.firstName} {item.lastName}
+          {item.displayName ?? `${item.firstName} ${item.lastName}`}
         </Text>
         <Text className={`text-sm italic ${applied === "dark" ? "text-gray-400" : "text-gray-600"}`}>
           {item.status === "ACTIVE"
