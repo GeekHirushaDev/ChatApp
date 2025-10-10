@@ -1,3 +1,4 @@
+// @ts-ignore: side-effect import for global styles (add a '*.css' declaration file if you prefer)
 import "./global.css";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
