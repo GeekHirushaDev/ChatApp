@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "ChatApp",
-    "slug": "ChatApp",
+  "name": "Social Chat",
+  "slug": "social-chat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo-dark-colored.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2563eb"
     },
     "ios": {
       "supportsTablet": true

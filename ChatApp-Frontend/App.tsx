@@ -48,8 +48,8 @@ function ChatApp() {
   const auth = useContext(AuthContext);
 
   return (
-    <WebSocketProvider userId={auth ? Number(auth.userId) : 0}>
-      <ThemeProvider>
+    <ThemeProvider>
+      <WebSocketProvider userId={auth ? Number(auth.userId) : 0}>
         <UserRegistrationProvider>
           <NavigationContainer>
             <Stack.Navigator
@@ -125,8 +125,8 @@ function ChatApp() {
             </Stack.Navigator>
           </NavigationContainer>
         </UserRegistrationProvider>
-      </ThemeProvider>
-    </WebSocketProvider>
+      </WebSocketProvider>
+    </ThemeProvider>
   );
 }
 

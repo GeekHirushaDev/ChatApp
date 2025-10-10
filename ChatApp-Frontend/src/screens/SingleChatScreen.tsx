@@ -91,7 +91,7 @@ export default function SingleChatScreen({
       <View
         className={`my-1 px-3 py-2 max-w-[75%] ${
           isMe
-            ? `self-end bg-green-900 rounded-tl-xl rounded-bl-xl rounded-br-xl`
+            ? `self-end bg-primary-700 rounded-tl-xl rounded-bl-xl rounded-br-xl`
             : `rounded-tr-xl rounded-bl-xl rounded-br-xl self-start bg-gray-700`
         }`}
       >
@@ -157,7 +157,7 @@ export default function SingleChatScreen({
             }`}
           />
           <TouchableOpacity
-            className="bg-green-600 w-14 h-14 items-center justify-center rounded-full"
+            className="bg-primary-600 w-14 h-14 items-center justify-center rounded-full"
             onPress={handleSendChat}
           >
             <Ionicons name="send" size={24} color="white" />

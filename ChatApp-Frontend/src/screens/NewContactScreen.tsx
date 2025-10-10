@@ -18,15 +18,17 @@ import {
 } from "../util/Validation";
 import { ALERT_TYPE, Toast } from "react-native-alert-notification";
 import { useSendNewContact } from "../socket/UseSendNewContact";
+import { useTheme } from "../theme/ThemeProvider";
 
 type NewContactScreenProp = NativeStackNavigationProp<
   RootStack,
   "NewContactScreen"
 >;
 export default function NewContactScreen() {
+  const { applied } = useTheme();
   const navigation = useNavigation<NewContactScreenProp>();
   useLayoutEffect(() => {
-    navigation.setOptions = () => ({
+    navigation.setOptions({
       title: "",
       headerLeft: () => (
         <View className="items-center flex-row gap-x-2">
@@ -40,6 +42,27 @@ export default function NewContactScreen() {
           </TouchableOpacity>
           <View className="flex-col">
             <Text className="text-lg font-bold">New Contact</Text>
+          </View>
+        </View>
+      ),
+    });
+    navigation.setOptions({
+      title: "",
+      headerStyle: {
+        backgroundColor: applied === "dark" ? "#0a192f" : "#2563eb",
+      },
+      headerLeft: () => (
+        <View className="items-center flex-row gap-x-2">
+          <TouchableOpacity
+            className="justify-center items-center"
+            onPress={() => {
+              navigation.goBack();
+            }}
+          >
+            <Ionicons name="arrow-back-sharp" size={24} color={applied === "dark" ? "#60A5FA" : "white"} />
+          </TouchableOpacity>
+          <View className="flex-col">
+            <Text className="text-lg font-bold text-white">Add Contact</Text>
           </View>
         </View>
       ),
@@ -110,7 +133,7 @@ export default function NewContactScreen() {
             />
           </View>
         </View>
-        <View className="border-b-2 border-b-sky-800 justify-center items-center flex-row h-14 mt-8">
+  <View className="border-b-2 border-b-primary-700 justify-center items-center flex-row h-14 mt-8">
           <CountryPicker
             countryCode={countryCode}
             withFilter
@@ -158,7 +181,7 @@ export default function NewContactScreen() {
         </View>
         <View className="mt-10">
           <Pressable
-            className="bg-green-600 h-14 items-center justify-center rounded-full"
+            className="bg-primary-600 h-14 items-center justify-center rounded-full"
             onPress={() => {
               const firstNameValid = validateFirstName(firstName);
               const lastNameValid = validateLastName(lastName);

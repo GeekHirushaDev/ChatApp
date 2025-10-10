@@ -20,6 +20,14 @@ export default function SettingScreen() {
       },
       headerTintColor: applied === "dark" ? "white" : "black",
     });
+      navigation.setOptions({
+        title: "Settings",
+        headerStyle: {
+          backgroundColor: applied === "dark" ? "#0a192f" : "#2563eb",
+        },
+        headerTintColor: "white",
+        headerTitleStyle: { color: "white", fontWeight: "bold" },
+      });
   }, [navigation, applied]);
   return (
     <SafeAreaView className="flex-1 " edges={["right", "bottom", "left"]}>
@@ -34,7 +42,7 @@ export default function SettingScreen() {
               key={option}
               className={` py-2 px-5 rounded-full mb-2  ${
                 preference === option 
-                  ? "bg-green-600" 
+                  ? "bg-primary-600" 
                   : applied === "dark" 
                     ? "bg-gray-700" 
                     : "bg-gray-200"

@@ -1,5 +1,6 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Image, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { Image, Text, TouchableOpacity, View, ActivityIndicator, Alert } from "react-native";
+import * as Clipboard from 'expo-clipboard';
 import { RootStack } from "../../App";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import React, { useContext, useLayoutEffect, useState, useEffect } from "react";
@@ -28,6 +29,14 @@ export default function ProfileScreen() {
       },
       headerTintColor: applied === "dark" ? "white" : "black",
     });
+      navigation.setOptions({
+        title: "My Profile",
+        headerStyle: {
+          backgroundColor: applied === "dark" ? "#0a192f" : "#2563eb",
+        },
+        headerTintColor: "white",
+        headerTitleStyle: { color: "white", fontWeight: "bold" },
+      });
   }, [navigation, applied]);
 
   const [image, setImage] = useState<string | null>(null);
@@ -124,7 +133,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView className={`flex-1 items-center justify-center ${applied === "dark" ? "bg-black" : "bg-white"}`}>
         <View className="items-center">
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color="#2563eb" />
           <Text className={`mt-4 text-lg font-semibold ${applied === "dark" ? "text-gray-300" : "text-gray-600"}`}>
             Loading profile...
           </Text>
@@ -178,13 +187,13 @@ export default function ProfileScreen() {
           >
             {isUploading ? (
               <View className="flex-row items-center">
-                <ActivityIndicator size="small" color="#10B981" />
-                <Text className="font-bold text-green-600 text-lg ml-2">
+                <ActivityIndicator size="small" color="#2563eb" />
+                <Text className="font-bold text-blue-600 text-lg ml-2">
                   Uploading...
                 </Text>
               </View>
             ) : (
-              <Text className="font-bold text-green-600 text-lg">
+              <Text className="font-bold text-blue-600 text-lg">
                 Edit Profile
               </Text>
             )}
@@ -204,9 +213,20 @@ export default function ProfileScreen() {
             <Feather name="phone" size={24} color={applied === "dark" ? "white" : "black"} />
             <Text className={`font-bold text-lg ${applied === "dark" ? "text-white" : "text-black"}`}>Phone</Text>
           </View>
-          <Text className={`font-bold text-lg ${applied === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-            {userProfile?.countryCode || ''} {userProfile?.contactNo || 'Not available'}
-          </Text>
+          <TouchableOpacity
+            onLongPress={() => {
+              if (userProfile?.contactNo) {
+                Clipboard.setStringAsync(`${userProfile.countryCode} ${userProfile.contactNo}`);
+                Alert.alert('Copied!', 'Phone number copied to clipboard.');
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Text className={`font-bold text-lg ${applied === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+              {userProfile?.countryCode || ''} {userProfile?.contactNo || 'Not available'}
+            </Text>
+            <Text className="text-xs text-primary-600 mt-1">Long press to copy</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

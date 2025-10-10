@@ -16,7 +16,9 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  let { colorScheme, setColorScheme } = useColorScheme();
+  // fallback to 'light' if colorScheme is undefined/null
+  if (!colorScheme) colorScheme = "light";
   const [getPreferenceState, setPreferenceState] =
     useState<ThemeOption>("system");
   const [isReady, setReady] = useState(false);
@@ -56,10 +58,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (!isReady) {
-    return <ActivityIndicator style={{ flex: 1 }} />;
-  }
-
   return (
     <ThemeContext.Provider
       value={{
@@ -68,6 +66,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setPreference,
       }}
     >
+      {/* Show loading indicator overlay, but always mount children */}
+      {!isReady && (
+        <ActivityIndicator style={{ position: 'absolute', top: '50%', left: '50%' }} />
+      )}
       {children}
     </ThemeContext.Provider>
   );

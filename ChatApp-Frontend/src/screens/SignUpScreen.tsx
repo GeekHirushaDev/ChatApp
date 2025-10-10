@@ -81,7 +81,7 @@ export default function SignUpScreen() {
       </SafeAreaView>
       <View className="mt-1 w-full px-5">
         <Pressable
-          className="bg-green-600 h-14 justify-center items-center rounded-full"
+          className="bg-primary-600 h-14 justify-center items-center rounded-full"
           onPress={() => {
             let validFirstName = validateFirstName(userData.firstName);
             let validLastName = validateLastName(userData.lastName);

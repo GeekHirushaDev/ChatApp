@@ -48,6 +48,29 @@ export default function NewChatScreen() {
       ),
       headerRight: () => <View></View>,
     });
+      navigation.setOptions({
+        title: "",
+        headerStyle: {
+          backgroundColor: applied === "dark" ? "#0a192f" : "#2563eb",
+        },
+        headerLeft: () => (
+          <View className="items-center flex-row gap-x-2">
+            <TouchableOpacity
+              className="justify-center items-center"
+              onPress={() => {
+                navigation.goBack();
+              }}
+            >
+              <Ionicons name="arrow-back-sharp" size={24} color={applied === "dark" ? "#60A5FA" : "white"} />
+            </TouchableOpacity>
+            <View className="flex-col">
+              <Text className="text-lg font-bold text-white">Select Contact</Text>
+              <Text className="text-sm font-bold text-blue-100">{users.length} contacts</Text>
+            </View>
+          </View>
+        ),
+        headerRight: () => <View></View>,
+      });
   }, [navigation, users, applied]);
 
   const renderItem = ({ item }: { item: User }) => (
@@ -126,12 +149,12 @@ export default function NewChatScreen() {
             onChangeText={(text) => setSearch(text)}
           />
         </View>
-        <View className="px-2 my-2 border-b-2 border-b-green-500 py-2">
+  <View className="px-2 my-2 border-b-2 border-b-primary-500 py-2">
           <TouchableOpacity
             className="justify-start gap-x-3 flex-row items-center h-14"
             onPress={() => navigation.navigate("NewContactScreen")}
           >
-            <View className="bg-green-600 items-center justify-center w-12 h-12 rounded-full">
+            <View className="bg-primary-600 items-center justify-center w-12 h-12 rounded-full">
               <Feather name="user-plus" size={24} color="white" />
             </View>
             <Text className={`text-lg font-bold ${applied === "dark" ? "text-white" : "text-black"}`}>New Contact</Text>

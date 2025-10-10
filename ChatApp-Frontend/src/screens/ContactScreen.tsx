@@ -61,7 +61,7 @@ export default function ContactScreen() {
             </Text>
           </View>
           <View className="mt-5 w-full">
-            <View className="border-b-2 border-b-green-600 justify-center items-center flex-row h-14 mb-3">
+            <View className="border-b-2 border-b-primary-700 justify-center items-center flex-row h-14 mb-3">
               <CountryPicker
                 countryCode={countryCode}
                 withFilter
@@ -89,7 +89,7 @@ export default function ContactScreen() {
             <View className="mt-2 flex flex-row justify-center">
               <TextInput
                 inputMode="tel"
-                className="h-16 font-bold text-lg border-y-2 border-y-green-600 w-[18%]"
+                className="h-16 font-bold text-lg border-y-2 border-y-primary-700 w-[18%]"
                 placeholder="+94"
                 editable={false}
                 value={country ? `+${country.callingCode}` : callingCode}
@@ -99,7 +99,7 @@ export default function ContactScreen() {
               />
               <TextInput
                 inputMode="tel"
-                className="h-16 font-bold text-lg border-y-2 border-y-green-600 w-[80%] ml-2"
+                className="h-16 font-bold text-lg border-y-2 border-y-primary-700 w-[80%] ml-2"
                 placeholder="77 #### ###"
                 value={phoneNo}
                 onChangeText={(text) => {
@@ -110,7 +110,7 @@ export default function ContactScreen() {
           </View>
           <View className="mt-16 w-full">
             <Pressable
-              className="justify-center items-center bg-green-600 w-full h-14 rounded-full"
+              className="justify-center items-center bg-primary-600 w-full h-14 rounded-full"
               onPress={() => {
                 const validCountryCode = validateCountryCode(callingCode);
                 const validPhoneNo = validatePhoneNo(phoneNo);

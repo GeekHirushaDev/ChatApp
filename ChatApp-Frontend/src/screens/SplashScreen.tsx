@@ -6,7 +6,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import "../../global.css";
 import CircleShape from "../components/CircleShape";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -43,35 +42,25 @@ export default function SplashScreen() {
       : require("../../assets/logo.png");
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center bg-slate-50 ">
+    <SafeAreaView className="flex-1 justify-center items-center bg-gradient-to-b from-blue-500 to-slate-50">
       <StatusBar hidden={true} />
-      <CircleShape
-        width={200}
-        height={200}
-        borderRadius={999}
-        className="bg-slate-900"
-        topValue={-50}
-        leftValue={-20}
-      />
-      <CircleShape
-        width={200}
-        height={200}
-        borderRadius={999}
-        className="bg-slate-900"
-        topValue={-20}
-        leftValue={90}
-      />
       <Animated.View style={animatedStyle}>
-        <Image source={logo} style={{ height: 200, width: 220 }} />
+        <Image
+          source={logo}
+          style={{ height: 180, width: 200, resizeMode: "contain" }}
+        />
       </Animated.View>
 
-      <Animated.View className="absolute bottom-10" style={animatedStyle}>
+      <Animated.View
+        className="absolute bottom-10 w-full px-8"
+        style={animatedStyle}
+      >
         <View className="justify-center items-center">
-          <Text className="text-xs font-bold text-slate-600 ">
-            POWERED BY: {process.env.EXPO_PUBLIC_APP_OWNER}
+          <Text className="text-base font-semibold text-slate-700 text-center">
+            Connect. Share. Discover.
           </Text>
-          <Text className="text-xs font-bold text-slate-600 ">
-            VERSION: {process.env.EXPO_PUBLIC_APP_VERSION}
+          <Text className="text-xs font-medium text-slate-500 mt-2">
+            Version: {process.env.EXPO_PUBLIC_APP_VERSION}
           </Text>
         </View>
       </Animated.View>
